@@ -1240,6 +1240,16 @@ struct PACKED log_Arm_Disarm {
     uint8_t method;
 };
 
+struct PACKED log_AOA_SSA_Sensor {
+    LOG_PACKET_HEADER;
+    uint64_t time_us;
+    uint64_t time_us_reported;
+    float aoa;
+    float ssa;
+};
+
+
+
 // FMT messages define all message formats other than FMT
 // UNIT messages define units which can be referenced by FMTU messages
 // FMTU messages associate types (e.g. centimeters/second/second) to FMT message fields
@@ -1699,6 +1709,7 @@ enum LogMessages : uint8_t {
     LOG_ARM_DISARM_MSG,
     LOG_OA_BENDYRULER_MSG,
     LOG_OA_DIJKSTRA_MSG,
+	LOG_AOA_SSA_SENSOR,
 
     _LOG_LAST_MSG_
 };

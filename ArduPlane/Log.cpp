@@ -266,6 +266,8 @@ const struct LogStructure Plane::log_structure[] = {
       "QTUN", "Qffffffeccff", "TimeUS,ThI,ABst,ThO,ThH,DAlt,Alt,BAlt,DCRt,CRt,TMix,Sscl", "s----mmmnn--", "F----00000-0" },
     { LOG_AOA_SSA_MSG, sizeof(log_AOA_SSA),
       "AOA", "Qff", "TimeUS,AOA,SSA", "sdd", "F00" },
+    { LOG_AOA_SSA_SENSOR, sizeof(log_AOA_SSA_Sensor),
+      "AANG", "QQff", "TimeUS,T_reported,AOA,SSA", "ssdd", "FF00" },
     { LOG_PIQR_MSG, sizeof(log_PID), \
       "PIQR", PID_FMT,  PID_LABELS, PID_UNITS, PID_MULTS },  \
     { LOG_PIQP_MSG, sizeof(log_PID), \
