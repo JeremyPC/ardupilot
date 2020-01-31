@@ -3281,9 +3281,21 @@ void GCS_MAVLINK::handle_common_message(const mavlink_message_t &msg)
     case MAVLINK_MSG_ID_OBSTACLE_DISTANCE:
         handle_obstacle_distance(msg);
         break;
+	
+	case: MAVLINK_MSG_ID_AOA_SSA:
+		handle_aoa_ssa(msg);
+		break;
 
     }
 
+}
+
+void GCS_MAVLINK::handle_aoa_ssa(const mavlink_message_t &msg)
+{
+	//This is cheap and nasty way to receive AoA SSA sensor readings without making a full blown library for this kind of sensor.
+    mavlink_aoa_ssa_t m;
+    mavlink_msg_aoa_ssa_decode(&msg, &m);
+	//Can now access m.AOA and m.SSA (both floats) and m.time_usec (uint64_t) which is the time that the AoA SSA computer reports for the measurement
 }
 
 void GCS_MAVLINK::handle_common_mission_message(const mavlink_message_t &msg)
