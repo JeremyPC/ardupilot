@@ -3282,7 +3282,7 @@ void GCS_MAVLINK::handle_common_message(const mavlink_message_t &msg)
         handle_obstacle_distance(msg);
         break;
 	
-	case: MAVLINK_MSG_ID_AOA_SSA:
+	case MAVLINK_MSG_ID_AOA_SSA:
 		handle_aoa_ssa(msg);
 		break;
 
