@@ -3296,6 +3296,15 @@ void GCS_MAVLINK::handle_aoa_ssa(const mavlink_message_t &msg)
     mavlink_aoa_ssa_t m;
     mavlink_msg_aoa_ssa_decode(&msg, &m);
 	//Can now access m.AOA and m.SSA (both floats) and m.time_usec (uint64_t) which is the time that the AoA SSA computer reports for the measurement
+	//Pack the log message from the information in the mavlink packet
+	struct log_AOA_SSA_Sensor pkt = {
+		LOG_PACKET_HEADER_INIT(LOG_AOA_SSA_SENSOR),
+		time_us : AP_HAL::micros64(),
+		time_us_reported : m.time_usec,
+		aoa : m.AOA,
+		ssa : m.SSA
+	};
+	logger.WriteBlock(&pkt,sizeof(pkt));
 }
 
 void GCS_MAVLINK::handle_common_mission_message(const mavlink_message_t &msg)
