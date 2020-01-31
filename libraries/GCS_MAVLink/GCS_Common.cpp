@@ -3304,7 +3304,7 @@ void GCS_MAVLINK::handle_aoa_ssa(const mavlink_message_t &msg)
 		aoa : m.AOA,
 		ssa : m.SSA
 	};
-	AP::logger.WriteBlock(&pkt,sizeof(pkt));
+	AP::logger().WriteBlock(&pkt,sizeof(pkt));
 }
 
 void GCS_MAVLINK::handle_common_mission_message(const mavlink_message_t &msg)
