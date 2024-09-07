@@ -16,10 +16,11 @@ void Copter::arm_motors_check()
     // check if arming/disarm using rudder is allowed
     AP_Arming::RudderArming arming_rudder = arming.get_rudder_arming_type();
     if (arming_rudder == AP_Arming::RudderArming::IS_DISABLED) {
+        arming_counter = 0;
         return;
     }
 
-#if TOY_MODE_ENABLED == ENABLED
+#if TOY_MODE_ENABLED
     if (g2.toy_mode.enabled()) {
         // not armed with sticks in toy mode
         return;
@@ -51,7 +52,7 @@ void Copter::arm_motors_check()
         }
 
         // arm the motors and configure for flight
-        if (arming_counter == AUTO_TRIM_DELAY && motors->armed() && control_mode == Mode::Number::STABILIZE) {
+        if (arming_counter == AUTO_TRIM_DELAY && motors->armed() && flightmode->mode_number() == Mode::Number::STABILIZE) {
             gcs().send_text(MAV_SEVERITY_INFO, "AutoTrim start");
             auto_trim_counter = 250;
             auto_trim_started = false;
@@ -90,7 +91,7 @@ void Copter::auto_disarm_check()
 
     // exit immediately if we are already disarmed, or if auto
     // disarming is disabled
-    if (!motors->armed() || disarm_delay_ms == 0 || control_mode == Mode::Number::THROW) {
+    if (!motors->armed() || disarm_delay_ms == 0 || flightmode->mode_number() == Mode::Number::THROW) {
         auto_disarm_begin = tnow_ms;
         return;
     }
@@ -134,7 +135,7 @@ void Copter::auto_disarm_check()
 // motors_output - send output to motors library which will adjust and send to ESCs and servos
 void Copter::motors_output()
 {
-#if ADVANCED_FAILSAFE == ENABLED
+#if ADVANCED_FAILSAFE
     // this is to allow the failsafe module to deliberately crash
     // the vehicle. Only used in extreme circumstances to meet the
     // OBC rules
@@ -148,7 +149,7 @@ void Copter::motors_output()
 #endif
 
     // Update arming delay state
-    if (ap.in_arming_delay && (!motors->armed() || millis()-arm_time_ms > ARMING_DELAY_SEC*1.0e3f || control_mode == Mode::Number::THROW)) {
+    if (ap.in_arming_delay && (!motors->armed() || millis()-arm_time_ms > ARMING_DELAY_SEC*1.0e3f || flightmode->mode_number() == Mode::Number::THROW)) {
         ap.in_arming_delay = false;
     }
 
@@ -161,21 +162,22 @@ void Copter::motors_output()
     // update output on any aux channels, for manual passthru
     SRV_Channels::output_ch_all();
 
-    // check if we are performing the motor test
+    // update motors interlock state
+    bool interlock = motors->armed() && !ap.in_arming_delay && (!ap.using_interlock || ap.motor_interlock_switch) && !SRV_Channels::get_emergency_stop();
+    if (!motors->get_interlock() && interlock) {
+        motors->set_interlock(true);
+        LOGGER_WRITE_EVENT(LogEvent::MOTORS_INTERLOCK_ENABLED);
+    } else if (motors->get_interlock() && !interlock) {
+        motors->set_interlock(false);
+        LOGGER_WRITE_EVENT(LogEvent::MOTORS_INTERLOCK_DISABLED);
+    }
+
     if (ap.motor_test) {
+        // check if we are performing the motor test
         motor_test_output();
     } else {
-        bool interlock = motors->armed() && !ap.in_arming_delay && (!ap.using_interlock || ap.motor_interlock_switch) && !SRV_Channels::get_emergency_stop();
-        if (!motors->get_interlock() && interlock) {
-            motors->set_interlock(true);
-            AP::logger().Write_Event(LogEvent::MOTORS_INTERLOCK_ENABLED);
-        } else if (motors->get_interlock() && !interlock) {
-            motors->set_interlock(false);
-            AP::logger().Write_Event(LogEvent::MOTORS_INTERLOCK_DISABLED);
-        }
-
         // send output signals to motors
-        motors->output();
+        flightmode->output_to_motors();
     }
 
     // push all channels

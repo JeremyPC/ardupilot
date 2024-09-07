@@ -27,6 +27,8 @@
 
 #include <AP_ADSB/AP_ADSB.h>
 
+#if HAL_ADSB_ENABLED
+
 #define AP_AVOIDANCE_STATE_RECOVERY_TIME_MS                 2000    // we will not downgrade state any faster than this (2 seconds)
 
 #define AP_AVOIDANCE_ESCAPE_TIME_SEC                        2       // vehicle runs from thread for 2 seconds
@@ -38,8 +40,7 @@ public:
     AP_Avoidance(class AP_ADSB &adsb);
 
     /* Do not allow copies */
-    AP_Avoidance(const AP_Avoidance &other) = delete;
-    AP_Avoidance &operator=(const AP_Avoidance&) = delete;
+    CLASS_NO_COPY(AP_Avoidance);
 
     // get singleton instance
     static AP_Avoidance *get_singleton() {
@@ -93,8 +94,8 @@ public:
     void update();
 
     // enable or disable avoidance
-    void enable() { _enabled = true; };
-    void disable() { _enabled = false; };
+    void enable() { _enabled.set(true); };
+    void disable() { _enabled.set(false); };
 
     // current overall threat level
     MAV_COLLISION_THREAT_LEVEL current_threat_level() const;
@@ -138,7 +139,7 @@ protected:
     bool get_destination_perpendicular(const AP_Avoidance::Obstacle *obstacle, Vector3f &newdest_neu, const float wp_speed_xy, const float wp_speed_z, const uint8_t _minimum_avoid_height);
 
     // get unit vector away from the nearest obstacle
-    bool get_vector_perpendicular(const AP_Avoidance::Obstacle *obstacle, Vector3f &vec_neu);
+    bool get_vector_perpendicular(const AP_Avoidance::Obstacle *obstacle, Vector3f &vec_neu) const;
 
     // helper functions to calculate destination to get us away from obstacle
     // Note: v1 is NED
@@ -229,3 +230,6 @@ float closest_approach_z(const Location &my_loc,
 namespace AP {
     AP_Avoidance *ap_avoidance();
 };
+
+#endif
+
